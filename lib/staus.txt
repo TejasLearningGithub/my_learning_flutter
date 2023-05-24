@@ -1,0 +1,5 @@
+Kido Task Status:
+
+in 2nd phase there is a concept called "communication" so i explore it as a whatsapp clone 
+in this phase also there is a creation of assignment in audio and video form with comment on assignment,also sending and receiving of files, also like and dislike also list of all chat whatever we do
+but i got an easier way to do "communicaion" that known as to use plugin such as "whatsapp" and "whatsapp_share" and others 
