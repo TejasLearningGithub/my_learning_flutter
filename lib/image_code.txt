@@ -1,0 +1,7 @@
+ child: Image.asset(
+              'assets/logos/fantasylogo1.png',
+              // fit: BoxFit.fitHeight,
+              width: 358,
+              height: 366,
+              //fit: BoxFit.fitWidth,
+            ),
