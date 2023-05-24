@@ -1,0 +1,289 @@
+class AddLeadProvider with ChangeNotifier {
+  AddLeadRepository addLeadRepository = AddLeadRepository();
+  List<CountryModal> countryList = [];
+  List<SourceModel> sourceList = [];
+  List<StatusModel> statusList = [];
+  List<SubStatusModel> subStatusList = [];
+  List<CityModel> cityList = [];
+  List<ActionPlannedModel> actionPlannedList = [];
+  List<StateModel> stateList = [];
+  List<ProgramModel> programList = [];
+  List<CenterModel> centerList = [];
+  ProgramCatModel programCatModel = ProgramCatModel(
+    id: '',
+    schoolName: '',
+    schoolDisplayName: '',
+    programcategoryIdList: [],
+  );
+  resetScreen() {
+    cityList = [];
+    countryList = [];
+    sourceList = [];
+    statusList = [];
+    subStatusList = [];
+    cityList = [];
+    actionPlannedList = [];
+    stateList = [];
+    programList = [];
+    centerList = [];
+    programCatModel = ProgramCatModel(
+      id: '',
+      schoolName: '',
+      schoolDisplayName: '',
+      programcategoryIdList: [],
+    );
+  }
+
+  Future getCountires() async {
+    try {
+      SharedPreferences myPrefs = await SharedPreferences.getInstance();
+      String? authToken =
+          MySharedPreferences.instance.getStringValue('authToken', myPrefs);
+      var response = await addLeadRepository.countryApi(
+        authToken: authToken!,
+      );
+      if (response['code'] == 200) {
+        List<CountryModal> tempCountryList = List<CountryModal>.from(
+          response["data"].map((e) => CountryModal.fromJson(e)),
+        );
+        countryList = tempCountryList;
+        log(response.toString(), name: 'response getCountires');
+        notifyListeners();
+      } else {
+        log(response.toString(), name: 'error getCountires');
+      }
+    } on SocketException catch (e) {
+      scaffoldMessage(message: '$e');
+    } catch (e, s) {
+      log(e.toString(), name: 'error catch getCountires', stackTrace: s);
+    }
+  }
+
+  Future getSources() async {
+    try {
+      SharedPreferences myPrefs = await SharedPreferences.getInstance();
+      String? authToken =
+          MySharedPreferences.instance.getStringValue('authToken', myPrefs);
+      var response = await addLeadRepository.sourceApi(
+        authToken: authToken!,
+      );
+      if (response['code'] == 200) {
+        List<SourceModel> tempSourceList = List<SourceModel>.from(
+          response["data"].map((e) => SourceModel.fromJson(e)),
+        );
+        sourceList = tempSourceList;
+        log(response.toString(), name: 'response getSources');
+        notifyListeners();
+      } else {
+        log(response.toString(), name: 'error getSources');
+      }
+    } on SocketException catch (e) {
+      scaffoldMessage(message: '$e');
+    } catch (e, s) {
+      log(e.toString(), name: 'error catch getSources', stackTrace: s);
+    }
+  }
+
+  Future getStatus() async {
+    try {
+      SharedPreferences myPrefs = await SharedPreferences.getInstance();
+      String? authToken =
+          MySharedPreferences.instance.getStringValue('authToken', myPrefs);
+      var response = await addLeadRepository.statusApi(
+        authToken: authToken!,
+      );
+      if (response['code'] == 200) {
+        List<StatusModel> tempStatusList = List<StatusModel>.from(
+          response["data"].map((e) => StatusModel.fromJson(e)),
+        );
+        statusList = tempStatusList;
+        log(response.toString(), name: 'response getStatus');
+        notifyListeners();
+      } else {
+        log(response.toString(), name: 'error getStatus');
+      }
+    } on SocketException catch (e) {
+      scaffoldMessage(message: '$e');
+    } catch (e, s) {
+      log(e.toString(), name: 'error catch getStatus', stackTrace: s);
+    }
+  }
+
+  Future getSubStatus(String statusId) async {
+    try {
+      SharedPreferences myPrefs = await SharedPreferences.getInstance();
+      String? authToken =
+          MySharedPreferences.instance.getStringValue('authToken', myPrefs);
+      var response = await addLeadRepository.subStatusApi(
+        authToken: authToken!,
+        statusId: statusId,
+      );
+      if (response['code'] == 200) {
+        List<SubStatusModel> tempSubStatusList = List<SubStatusModel>.from(
+          response["data"].map((e) => SubStatusModel.fromJson(e)),
+        );
+        subStatusList = tempSubStatusList;
+        log(response.toString(), name: 'response getSubStatus');
+        notifyListeners();
+      } else {
+        log(response.toString(), name: 'error getSubStatus');
+      }
+    } on SocketException catch (e) {
+      scaffoldMessage(message: '$e');
+    } catch (e, s) {
+      log(e.toString(), name: 'error catch getSubStatus', stackTrace: s);
+    }
+  }
+
+  Future getActionPlanned(String statusId) async {
+    try {
+      SharedPreferences myPrefs = await SharedPreferences.getInstance();
+      String? authToken =
+          MySharedPreferences.instance.getStringValue('authToken', myPrefs);
+      var response = await addLeadRepository.actionPlannedApi(
+        authToken: authToken!,
+        statusId: statusId,
+      );
+      if (response['code'] == 200) {
+        List<ActionPlannedModel> tempActionList = List<ActionPlannedModel>.from(
+          response["data"].map((e) => ActionPlannedModel.fromJson(e)),
+        );
+        actionPlannedList = tempActionList;
+        log(response.toString(), name: 'response getActionPlanned');
+        notifyListeners();
+      } else {
+        log(response.toString(), name: 'error getActionPlanned');
+      }
+    } on SocketException catch (e) {
+      scaffoldMessage(message: '$e');
+    } catch (e, s) {
+      log(e.toString(), name: 'error catch getActionPlanned', stackTrace: s);
+    }
+  }
+
+  Future getCities(int stateId) async {
+    try {
+      SharedPreferences myPrefs = await SharedPreferences.getInstance();
+      String? authToken =
+          MySharedPreferences.instance.getStringValue('authToken', myPrefs);
+      var response = await addLeadRepository.cityApi(
+        authToken: authToken!,
+        stateId: stateId,
+      );
+      if (response['code'] == 200) {
+        List<CityModel> tempCityList = List<CityModel>.from(
+          response["data"].map((e) => CityModel.fromJson(e)),
+        );
+        cityList = tempCityList;
+        log(response.toString(), name: 'response getCities');
+        notifyListeners();
+      } else {
+        log(response.toString(), name: 'error getCities');
+      }
+    } on SocketException catch (e) {
+      scaffoldMessage(message: '$e');
+    } catch (e, s) {
+      log(e.toString(), name: 'error catch getCities', stackTrace: s);
+    }
+  }
+
+  Future getStates(int countryId) async {
+    try {
+      SharedPreferences myPrefs = await SharedPreferences.getInstance();
+      String? authToken =
+          MySharedPreferences.instance.getStringValue('authToken', myPrefs);
+      var response = await addLeadRepository.stateApi(
+        authToken: authToken!,
+        countryId: countryId,
+      );
+      if (response['code'] == 200) {
+        List<StateModel> tempStateList = List<StateModel>.from(
+          response["data"].map((e) => StateModel.fromJson(e)),
+        );
+        stateList = tempStateList;
+        log(response.toString(), name: 'response getStates');
+        notifyListeners();
+      } else {
+        log(response.toString(), name: 'error getStates');
+      }
+    } on SocketException catch (e) {
+      scaffoldMessage(message: '$e');
+    } catch (e, s) {
+      log(e.toString(), name: 'error catch getStates', stackTrace: s);
+    }
+  }
+
+  Future getCenters() async {
+    try {
+      SharedPreferences myPrefs = await SharedPreferences.getInstance();
+      String? authToken =
+          MySharedPreferences.instance.getStringValue('authToken', myPrefs);
+      var response = await addLeadRepository.centerApi(
+        authToken: authToken!,
+      );
+      if (response['code'] == 200) {
+        List<CenterModel> tempCenterList = List<CenterModel>.from(
+          response["data"].map((e) => CenterModel.fromJson(e)),
+        );
+        centerList = tempCenterList;
+        log(response.toString(), name: 'response getCenters');
+        notifyListeners();
+      } else {
+        log(response.toString(), name: 'error getCenters');
+      }
+    } on SocketException catch (e) {
+      scaffoldMessage(message: '$e');
+    } catch (e, s) {
+      log(e.toString(), name: 'error catch getCenters', stackTrace: s);
+    }
+  }
+
+  Future getPrograms(String programCatId) async {
+    try {
+      SharedPreferences myPrefs = await SharedPreferences.getInstance();
+      String? authToken =
+          MySharedPreferences.instance.getStringValue('authToken', myPrefs);
+      var response = await addLeadRepository.programApi(
+        authToken: authToken!,
+        programCatId: programCatId,
+      );
+      if (response['code'] == 200) {
+        List<ProgramModel> tempProgramList = List<ProgramModel>.from(
+          response["data"].map((e) => ProgramModel.fromJson(e)),
+        );
+        programList = tempProgramList;
+        log(response.toString(), name: 'response getPrograms');
+        notifyListeners();
+      } else {
+        log(response.toString(), name: 'error getPrograms');
+      }
+    } on SocketException catch (e) {
+      scaffoldMessage(message: '$e');
+    } catch (e, s) {
+      log(e.toString(), name: 'error catch getPrograms', stackTrace: s);
+    }
+  }
+
+  Future getProgramCatagory(String centerId) async {
+    try {
+      SharedPreferences myPrefs = await SharedPreferences.getInstance();
+      String? authToken =
+          MySharedPreferences.instance.getStringValue('authToken', myPrefs);
+      var response = await addLeadRepository.programCatagoryApi(
+        authToken: authToken!,
+        centerId: centerId,
+      );
+      if (response['code'] == 200) {
+        programCatModel = ProgramCatModel.fromJson(response["data"]);
+        log(response.toString(), name: 'response getProgramCatagory');
+        notifyListeners();
+      } else {
+        log(response.toString(), name: 'error getProgramCatagory');
+      }
+    } on SocketException catch (e) {
+      scaffoldMessage(message: '$e');
+    } catch (e, s) {
+      log(e.toString(), name: 'error catch getProgramCatagory', stackTrace: s);
+    }
+  }
+}
