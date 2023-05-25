@@ -1,15 +1,6 @@
 class AddLeadProvider with ChangeNotifier {
-  AddLeadRepository addLeadRepository = AddLeadRepository();
-  List<CountryModal> countryList = [];
-  List<SourceModel> sourceList = [];
-  List<StatusModel> statusList = [];
-  List<SubStatusModel> subStatusList = [];
-  List<CityModel> cityList = [];
-  List<ActionPlannedModel> actionPlannedList = [];
-  List<StateModel> stateList = [];
-  List<ProgramModel> programList = [];
-  List<CenterModel> centerList = [];
- 
+
+   
  
  
 
