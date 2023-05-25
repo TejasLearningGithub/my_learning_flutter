@@ -9,12 +9,8 @@ class AddLeadProvider with ChangeNotifier {
   List<StateModel> stateList = [];
   List<ProgramModel> programList = [];
   List<CenterModel> centerList = [];
-  ProgramCatModel programCatModel = ProgramCatModel(
-    id: '',
-    schoolName: '',
-    schoolDisplayName: '',
-    programcategoryIdList: [],
-  );
+ 
+ 
   resetScreen() {
     cityList = [];
     countryList = [];
