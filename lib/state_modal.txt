@@ -1,14 +1,5 @@
 class StateByCountryId {
-  String? message;
-  int? stateId;
-  int? code;
-  bool? success;
-  String? sId;
-  int? id;
-  int? countryId;
-  String? stateName;
-  String? stateCode;
-
+  
   StateByCountryId(
       {this.message,
       this.sId,

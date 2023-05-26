@@ -9,9 +9,109 @@ class AddLeadProvider with ChangeNotifier {
   List<StateModel> stateList = [];
   List<ProgramModel> programList = [];
   List<CenterModel> centerList = [];
- 
- 
- 
+  class Programs {
+  String? message;
+
+  String? sId;
+  String? programName;
+  int? code;
+  bool? success;
+
+  Programs({this.message, this.sId, this.programName, this.code, this.success});
+
+  Programs.fromJson(Map<String, dynamic> json) {
+    message = json['message'] ?? '';
+    sId = json['_id'] ?? '';
+    programName = json['program_name'] ?? '';
+    code = json['code'] ?? 0;
+    success = json['success'] ?? false;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['message'] = message;
+    data['_id'] = sId;
+    data['program_name'] = programName;
+    data['code'] = code;
+    data['success'] = success;
+    return data;
+  }
+}
+
+  ProgramCatModel programCatModel = ProgramCatModel(
+    id: '',
+    schoolName: '',
+    schoolDisplayName: '',
+    programcategoryIdList: [],
+  );
+  resetScreen() {
+    cityList = [];
+    countryList = [];
+    sourceList = [];
+    statusList = [];
+    subStatusList = [];
+    cityList = [];
+    actionPlannedList = [];
+    stateList = [];
+    programList = [];
+    centerList = [];
+    programCatModel = ProgramCatModel(
+      id: '',
+      schoolName: '',
+      schoolDisplayName: '',
+      programcategoryIdList: [],
+    );
+  }
+
+  Future getCountires() async {
+    try {
+      SharedPreferences myPrefs = await SharedPreferences.getInstance();
+      String? authToken =
+          MySharedPreferences.instance.getStringValue('authToken', myPrefs);
+      var response = await addLeadRepository.countryApi(
+        authToken: authToken!,
+      );
+      if (response['code'] == 200) {
+        List<CountryModal> tempCountryList = List<CountryModal>.from(
+          response["data"].map((e) => CountryModal.fromJson(e)),
+        );
+        countryList = tempCountryList;
+        log(response.toString(), name: 'response getCountires');
+        notifyListeners();
+      } else {
+        log(response.toString(), name: 'error getCountires');
+      }
+    } on SocketException catch (e) {
+      scaffoldMessage(message: '$e');
+    } catch (e, s) {
+      log(e.toString(), name: 'error catch getCountires', stackTrace: s);
+    }
+  }
+
+  Future getSources() async {
+    try {
+      SharedPreferences myPrefs = await SharedPreferences.getInstance();
+      String? authToken =
+          MySharedPreferences.instance.getStringValue('authToken', myPrefs);
+      var response = await addLeadRepository.sourceApi(
+        authToken: authToken!,
+      );
+      if (response['code'] == 200) {
+        List<SourceModel> tempSourceList = List<SourceModel>.from(
+          response["data"].map((e) => SourceModel.fromJson(e)),
+        );
+        sourceList = tempSourceList;
+        log(response.toString(), name: 'response getSources');
+        notifyListeners();
+      } else {
+        log(response.toString(), name: 'error getSources');
+      }
+    } on SocketException catch (e) {
+      scaffoldMessage(message: '$e');
+    } catch (e, s) {
+      log(e.toString(), name: 'error catch getSources', stackTrace: s);
+    }
+  }
 
   Future getStatus() async {
     try {
