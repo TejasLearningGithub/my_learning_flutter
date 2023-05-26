@@ -1,0 +1,442 @@
+import 'package:flutter/material.dart';
+import 'package:kido_project/app/components/app_drawer.dart';
+import 'package:kido_project/app/components/appbar_main.dart';
+import 'package:kido_project/app/components/expandable_tile.dart';
+import 'package:kido_project/app/components/info_card.dart';
+import 'package:kido_project/app/model/leads_model.dart';
+import 'package:kido_project/app/provider/auth_provider.dart';
+import 'package:kido_project/app/provider/leads_provider.dart';
+import 'package:kido_project/app/theme/app_theme.dart';
+import 'package:kido_project/app/theme/theme_constans.dart';
+import 'package:kido_project/app/utils/enum.dart';
+import 'package:kido_project/app/utils/routes.dart';
+import 'package:kido_project/main.dart';
+import 'package:provider/provider.dart';
+
+class LeadsList extends StatefulWidget {
+  const LeadsList({super.key});
+
+  @override
+  State<LeadsList> createState() => _LeadsListState();
+}
+
+class _LeadsListState extends State<LeadsList> {
+  late LeadsProvider leadsProvider;
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
+  bool isLoading = true;
+
+  Future initPref() async {
+    // await Future.wait(Day.values
+    //     .map((e) => leadsProvider.getLeads(day: e, page: 1))
+    //     .toList());
+    await leadsProvider.getLeads(day: Day.today, page: 1);
+    await leadsProvider.getLeads(day: Day.yesterday, page: 1);
+    await leadsProvider.getLeads(day: Day.week, page: 1);
+  }
+
+  @override
+  void initState() {
+    leadsProvider = Provider.of<LeadsProvider>(context, listen: false);
+    // Future.delayed(Duration.zero).then((value) {
+    //   leadsProvider.resetLoader();
+    // });
+    initPref().then((value) {
+      setState(() {
+        isLoading = false;
+      });
+    });
+    super.initState();
+  }
+
+  bool onScrollNotification(
+    Object? notification,
+    VoidCallback callback,
+  ) {
+    if (notification is ScrollEndNotification) {
+      // before means 0 to high
+      final before = notification.metrics.extentBefore;
+      final max = notification.metrics.maxScrollExtent * 0.8;
+
+      if (before >= max) {
+        callback();
+      }
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool permit = context.select((AuthProvider value) =>
+        value.configModel!.leadsPermission!.followupAdd);
+    // isLoading = context.select((LeadsProvider value) => value.isLoading);
+    return Scaffold(
+      appBar: const AppBarMain(
+        title: 'LEADS',
+      ),
+      drawer: const AppDrawer(),
+      floatingActionButton: _floatingButton(context),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : RefreshIndicator(
+              key: _refreshIndicatorKey,
+              onRefresh: () async {
+                await context.read<AuthProvider>().userConfig();
+                await initPref();
+              },
+              child: ListView(
+                children: [
+                  todayLeads(permit),
+                  yesterdayLeads(permit),
+                  weekLeads(permit),
+                  monthLeads(permit),
+                  olderLeads(permit),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget todayLeads(bool permit) {
+    int count = context.select((LeadsProvider value) => value.todayCount ?? 0);
+    return Selector<LeadsProvider, List<LeadsModel>>(
+      selector: (context, provider) => provider.todayLeadsList,
+      builder: (context, leadsList, child) {
+        return ExpandableTile(
+          title: "Today",
+          color: Colors.black,
+          count: count,
+          children: [
+            leadsList.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: defaultPadding,
+                    ),
+                    child: Text(
+                      'There is no leads Today',
+                      style: montserratNormalColored,
+                    ),
+                  )
+                : Container(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height / 2,
+                    ),
+                    child: NotificationListener(
+                      onNotification: (notification) =>
+                          onScrollNotification(notification, () {
+                        if (leadsList.length < count) {
+                          leadsProvider.getLeads(
+                            day: Day.today,
+                            page: (leadsList.length / 10).ceil() + 1,
+                          );
+                        }
+                      }),
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: leadsList.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return InfoCard(
+                            permit: permit,
+                            navKey: leadsScreenKey,
+                            screenRoute: Routes.followUpDetails,
+                            leadId: leadsList[index].leadId!,
+                            stage: leadsList[index].stage!,
+                            leadNumber: leadsList[index].leadNumber!,
+                            statusName: leadsList[index].statusName!,
+                            subStatusName: leadsList[index].subStatusName!,
+                            childFirstName: leadsList[index].childFirstName!,
+                            childGender: leadsList[index].childGender!,
+                            childDoB: leadsList[index].childDoB!,
+                            schoolName: leadsList[index].schoolName!,
+                            parentName: leadsList[index].parentName!,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget yesterdayLeads(bool permit) {
+    int count =
+        context.select((LeadsProvider value) => value.yesterdayCount ?? 0);
+    return Selector<LeadsProvider, List<LeadsModel>>(
+      selector: (context, provider) => provider.yesterdayLeadsList,
+      builder: (context, leadsList, child) {
+        return ExpandableTile(
+          title: "Yesterday",
+          color: Colors.black,
+          count: count,
+          children: [
+            leadsList.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: defaultPadding,
+                    ),
+                    child: Text(
+                      'There is no leads Yesterday',
+                      style: montserratNormalColored,
+                    ),
+                  )
+                : Container(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height / 2,
+                    ),
+                    child: NotificationListener(
+                      onNotification: (notification) =>
+                          onScrollNotification(notification, () {
+                        if (leadsList.length < count) {
+                          leadsProvider.getLeads(
+                              day: Day.yesterday,
+                              page: (leadsList.length / 10).ceil() + 1);
+                        }
+                      }),
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: leadsList.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return InfoCard(
+                            permit: permit,
+                            navKey: leadsScreenKey,
+                            screenRoute: Routes.followUpDetails,
+                            leadId: leadsList[index].leadId!,
+                            stage: leadsList[index].stage!,
+                            leadNumber: leadsList[index].leadNumber!,
+                            statusName: leadsList[index].statusName!,
+                            subStatusName: leadsList[index].subStatusName!,
+                            childFirstName: leadsList[index].childFirstName!,
+                            childGender: leadsList[index].childGender!,
+                            childDoB: leadsList[index].childDoB!,
+                            schoolName: leadsList[index].schoolName!,
+                            parentName: leadsList[index].parentName!,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget weekLeads(bool permit) {
+    int count = context.select((LeadsProvider value) => value.weekCount ?? 0);
+    return Selector<LeadsProvider, List<LeadsModel>>(
+      selector: (context, provider) => provider.weekLeadsList,
+      builder: (context, leadsList, child) {
+        return ExpandableTile(
+          title: "This Week",
+          color: Colors.black,
+          count: count,
+          children: [
+            leadsList.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: defaultPadding,
+                    ),
+                    child: Text(
+                      'There is no leads in This Week',
+                      style: montserratNormalColored,
+                    ),
+                  )
+                : Container(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height / 2,
+                    ),
+                    child: NotificationListener(
+                      onNotification: (notification) =>
+                          onScrollNotification(notification, () {
+                        if (leadsList.length < count) {
+                          leadsProvider.getLeads(
+                            day: Day.week,
+                            page: (leadsList.length / 10).ceil() + 1,
+                          );
+                        }
+                      }),
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: leadsList.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return InfoCard(
+                            permit: permit,
+                            navKey: leadsScreenKey,
+                            screenRoute: Routes.followUpDetails,
+                            leadId: leadsList[index].leadId!,
+                            stage: leadsList[index].stage!,
+                            leadNumber: leadsList[index].leadNumber!,
+                            statusName: leadsList[index].statusName!,
+                            subStatusName: leadsList[index].subStatusName!,
+                            childFirstName: leadsList[index].childFirstName!,
+                            childGender: leadsList[index].childGender!,
+                            childDoB: leadsList[index].childDoB!,
+                            schoolName: leadsList[index].schoolName!,
+                            parentName: leadsList[index].parentName!,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget monthLeads(bool permit) {
+    int count = context.select((LeadsProvider value) => value.monthCount ?? 0);
+    return Selector<LeadsProvider, List<LeadsModel>>(
+      selector: (context, provider) => provider.monthLeadsList,
+      builder: (context, leadsList, child) {
+        return ExpandableTile(
+          title: "This Month",
+          color: Colors.black,
+          count: count,
+          children: [
+            leadsList.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: defaultPadding,
+                    ),
+                    child: Text(
+                      'There is no leads in This Month',
+                      style: montserratNormalColored,
+                    ),
+                  )
+                : Container(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height / 2,
+                    ),
+                    child: NotificationListener(
+                      onNotification: (notification) =>
+                          onScrollNotification(notification, () {
+                        if (leadsList.length < count) {
+                          leadsProvider.getLeads(
+                            day: Day.month,
+                            page: (leadsList.length / 10).ceil() + 1,
+                          );
+                        }
+                      }),
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: leadsList.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return InfoCard(
+                            permit: permit,
+                            navKey: leadsScreenKey,
+                            screenRoute: Routes.followUpDetails,
+                            leadId: leadsList[index].leadId!,
+                            stage: leadsList[index].stage!,
+                            leadNumber: leadsList[index].leadNumber!,
+                            statusName: leadsList[index].statusName!,
+                            subStatusName: leadsList[index].subStatusName!,
+                            childFirstName: leadsList[index].childFirstName!,
+                            childGender: leadsList[index].childGender!,
+                            childDoB: leadsList[index].childDoB!,
+                            schoolName: leadsList[index].schoolName!,
+                            parentName: leadsList[index].parentName!,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget olderLeads(bool permit) {
+    int count = context.select((LeadsProvider value) => value.olderCount ?? 0);
+    return Selector<LeadsProvider, List<LeadsModel>>(
+      selector: (context, provider) => provider.olderLeadsList,
+      builder: (context, leadsList, child) {
+        return ExpandableTile(
+          title: "Older Leads",
+          color: Colors.black,
+          count: count,
+          children: [
+            leadsList.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: defaultPadding,
+                    ),
+                    child: Text(
+                      'There is no Older leads',
+                      style: montserratNormalColored,
+                    ),
+                  )
+                : Container(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height / 2,
+                    ),
+                    child: NotificationListener(
+                      onNotification: (notification) =>
+                          onScrollNotification(notification, () {
+                        if (leadsList.length < count) {
+                          leadsProvider.getLeads(
+                            day: Day.older,
+                            page: (leadsList.length / 10).ceil() + 1,
+                          );
+                        }
+                      }),
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: leadsList.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return InfoCard(
+                            permit: permit,
+                            navKey: leadsScreenKey,
+                            screenRoute: Routes.followUpDetails,
+                            leadId: leadsList[index].leadId!,
+                            stage: leadsList[index].stage!,
+                            leadNumber: leadsList[index].leadNumber!,
+                            statusName: leadsList[index].statusName!,
+                            subStatusName: leadsList[index].subStatusName!,
+                            childFirstName: leadsList[index].childFirstName!,
+                            childGender: leadsList[index].childGender!,
+                            childDoB: leadsList[index].childDoB!,
+                            schoolName: leadsList[index].schoolName!,
+                            parentName: leadsList[index].parentName!,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _floatingButton(BuildContext context) {
+    bool leadAdd = context.select(
+      (AuthProvider value) => value.configModel!.leadsPermission!.add,
+    );
+    return leadAdd
+        ? FloatingActionButton.extended(
+            onPressed: () {
+              Navigator.pushNamed(context, Routes.addLeads);
+            },
+            backgroundColor: AppColors.darkOrange,
+            label: Text(
+              'Add Leads',
+              style: montserratNormal.copyWith(color: AppColors.white),
+            ),
+            isExtended: true,
+          )
+        : const SizedBox.shrink();
+  }
+}
+}
